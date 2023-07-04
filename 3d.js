@@ -53,9 +53,8 @@ loader.load('./public/model.glb', function (gltf) {
     initAnimations(gltf);
     console.log(actions);
 
-    actions["Speaking"].setEffectiveWeight(1);
-    actions["Speaking"].play();
-    prepareCrossFade(actions["Greeting"], actions["Speaking"]);
+    // actions["Speaking"].setEffectiveWeight(1);
+    // prepareCrossFade(actions["Greeting"], actions["Speaking"]);
 
     // setInterval(() => {
     //     actions["Greeting"].weight = 0.7;
@@ -70,6 +69,15 @@ loader.load('./public/model.glb', function (gltf) {
     //         prepareCrossFade(actions["Greeting"], actions["Speaking"])
     //     }, 5000);
     // }, 10000)
+
+    gltf.scene.traverse(function(child){
+        if(child.isMesh === true){
+            if(child.material.name == 'Glass'){
+                child.material.transparent = true;
+                child.material.opacity = 0.3;
+            }
+        }
+    });
 
     model.position.set(0, -3, 0);
     model.scale.set(3, 3, 3);
@@ -148,3 +156,55 @@ function render() {
 }
 
 animate();
+
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+
+const microphoneIcon = document.getElementById("mic");
+const animationOutline = document.getElementsByClassName("outline");
+const recognition = new SpeechRecognition();
+const speechRecognitionList = new SpeechGrammarList();
+const running = '0';
+
+const grammar = "#JSGF V1.0; grammar cash2u; public <cash2u> = кэштую | пэй24 | оной | квикпэй  | куикпэй | мегапэй | мегапей | эльсом | элсом | кейджи ;";
+speechRecognitionList.addFromString(grammar, 1);
+recognition.grammars = speechRecognitionList;
+//recognition.continuous = false;
+recognition.lang = 'ru-RU';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+// Формат “грамматики“ используемой нами - это JSpeech Grammar Format (JSGF) - по ссылке можете почитать про это больше.
+
+microphoneIcon.onclick = function () {
+    recognition.start();
+    console.log('Ready to receive a color command.');
+};
+
+recognition.onaudiostart = function () {
+    // microphoneWrapper.style.visibility = 'hidden';
+    // audioRecordAnimation.style.visibility = 'visible';
+    animationOutline[0].style.animationIterationCount = 'infinite';
+};
+
+
+recognition.onresult = function (event) {
+    const last = event.results.length - 1;
+    document.getElementById("caption").innerHTML = event.results[last][0].transcript;
+    console.log(event.results[last][0].transcript);
+    const audio = new Audio("./public/voice/4674973791187401977003441152470270512.wav");
+    audio.play();
+    actions["Speaking"].setEffectiveWeight(1);
+    audio.onended=function(){actions["Speaking"].setEffectiveWeight(0);};
+};
+
+recognition.onspeechend = function () {
+    recognition.stop();
+    animationOutline[0].style.animationIterationCount = '0';
+    // microphoneWrapper.style.visibility = 'visible';
+    // audioRecordAnimation.style.visibility = 'hidden';
+};
+
+
+
