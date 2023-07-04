@@ -128,55 +128,9 @@
         }
       }
     </script>
-
-    <script>
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-        const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
-
-        const microphoneIcon = document.getElementById("mic");
-        const animationOutline = document.getElementsByClassName("outline");
-        const recognition = new SpeechRecognition();
-        const speechRecognitionList = new SpeechGrammarList();
-        const running = '0';
-
-        const grammar = "#JSGF V1.0; grammar cash2u; public <cash2u> = кэштую | пэй24 | оной | квикпэй  | куикпэй | мегапэй | мегапей | эльсом | элсом | кейджи ;";
-        speechRecognitionList.addFromString(grammar, 1);
-        recognition.grammars = speechRecognitionList;
-        //recognition.continuous = false;
-        recognition.lang = 'ru-RU';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        // Формат “грамматики“ используемой нами - это JSpeech Grammar Format (JSGF) - по ссылке можете почитать про это больше.
-
-
-        microphoneIcon.onclick = function () {
-            recognition.start();
-            console.log('Ready to receive a color command.');
-        };
-
-        recognition.onaudiostart = function () {
-            // microphoneWrapper.style.visibility = 'hidden';
-            // audioRecordAnimation.style.visibility = 'visible';
-            animationOutline[0].style.animationIterationCount = 'infinite';
-        };
-
-
-        recognition.onresult = function (event) {
-            const last = event.results.length - 1;
-            document.getElementById("caption").innerHTML = event.results[last][0].transcript;
-            console.log(event.results[last][0].transcript);
-        };
-
-        recognition.onspeechend = function () {
-            recognition.stop();
-            animationOutline[0].style.animationIterationCount = '0';
-            // microphoneWrapper.style.visibility = 'visible';
-            // audioRecordAnimation.style.visibility = 'hidden';
-        };
-
-
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
+    <script src="public/qa.js"></script>
     <script type="module" src="./3d.js" defer></script>
 </body>
 </html>
