@@ -42,7 +42,6 @@ function removeStopwords(text) {
     return result;
 }
 
-
 function intersection(s1, s2) {
     s1 = replaceWords(s1, substitution);
     s1 = removeStopwords(s1);
@@ -51,6 +50,86 @@ function intersection(s1, s2) {
     let b = new Set(s2.toLowerCase().replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g,"").split(' '))
     let intersect = new Set([...a].filter(i => b.has(i)));
     return intersect.size / b.size;
+}
+
+function levenshteinDistance(word1, word2) {
+    const m = word1.length;
+    const n = word2.length;
+    const dp = Array.from(Array(m + 1), () => Array(n + 1).fill(0));
+
+    for (let i = 0; i <= m; i++) {
+        dp[i][0] = i;
+    }
+
+    for (let j = 0; j <= n; j++) {
+        dp[0][j] = j;
+    }
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1,
+                dp[i][j - 1] + 1,
+                dp[i - 1][j - 1] + cost
+            );
+        }
+    }
+
+    return dp[m][n];
+}
+
+function substituteWords(sentence, dictionary) {
+    const words = sentence.split(" ");
+    const modifiedWords = [];
+
+    for (let word of words) {
+        let minDistance = Infinity;
+        let substitute = word;
+
+        for (let dictWord of dictionary) {
+            const distance = levenshteinDistance(word, dictWord);
+            if (distance < minDistance) {
+                minDistance = distance;
+                substitute = dictWord;
+            }
+        }
+
+        modifiedWords.push(substitute);
+    }
+
+    const modifiedSentence = modifiedWords.join(" ");
+    console.log(modifiedSentence);
+    return modifiedSentence;
+}
+
+const dictionary = [
+    "кэш тую",
+    "пэй24",
+    "оной",
+    "квикпэй",
+    "куикпэй",
+    "мегапэй",
+    "мегапей",
+    "эльсом",
+    "элсом",
+    "кейджи",
+    "комиссии"
+];
+
+const sentences = [
+    "Что такое кештою?",
+    "Что такое кештую?",
+    "pay24 расскажи про это",
+    "элсон",
+    "мегапей"
+];
+
+for (let sentence of sentences) {
+    const modifiedSentence = substituteWords(sentence, dictionary);
+    console.log(`Original: ${sentence}`);
+    console.log(`Modified: ${modifiedSentence}`);
+    console.log();
 }
 
 let mixer;
@@ -234,7 +313,8 @@ recognition.onresult = function (event) {
     const last = event.results.length - 1;
     document.getElementById("caption").innerHTML = event.results[last][0].transcript;
     console.log(event.results[last][0].transcript);
-    const audio_answer_id = get_answer(event.results[last][0].transcript);
+    let audio_answer_id = get_answer(event.results[last][0].transcript, dictionary);
+    if (audio_answer_id === undefined) audio_answer_id = get_answer(substituteWords(event.results[last][0].transcript, dictionary));
     if (audio_answer_id !== undefined) {
         const audio = new Audio("./public/voice/" + audio_answer_id + ".wav");
         audio.play();
@@ -249,6 +329,5 @@ recognition.onspeechend = function () {
     // microphoneWrapper.style.visibility = 'visible';
     // audioRecordAnimation.style.visibility = 'hidden';
 };
-
 
 
