@@ -83,6 +83,10 @@ function substituteWords(sentence, dictionary) {
     const words = sentence.split(" ");
     const modifiedWords = [];
 
+    for (let i = 0; i < words.length; i++) {
+        words[i] = transliterate(words[i]);
+    }
+
     for (let word of words) {
         let minDistance = 5;
         let substitute = word;
@@ -102,19 +106,20 @@ function substituteWords(sentence, dictionary) {
     return modifiedSentence;
 }
 
-const dictionary = [
-    "кэш тую",
-    "пэй24",
-    "оной",
-    "квикпэй",
-    "куикпэй",
-    "мегапэй",
-    "мегапей",
-    "эльсом",
-    "элсом",
-    "кейджи",
-    "комиссии"
-];
+// const dictionary = [
+//     "кэш тую",
+//     "пэй24",
+//     "оной",
+//     "квикпэй",
+//     "куикпэй",
+//     "мегапэй",
+//     "мегапей",
+//     "эльсом",
+//     "элсом",
+//     "кейджи",
+//     "комиссии",
+//     "003"
+// ];
 
 const sentences = [
     "Что такое кештою?",
@@ -123,6 +128,91 @@ const sentences = [
     "элсон",
     "мегапей"
 ];
+
+let dictionary = new Set();
+dictionary = buildDictionary(qa, rustopwords);
+
+function buildDictionary(qaArray, stopwords) {
+    const dictionary = new Set();
+
+    // Function to remove punctuation from a word
+    function removePunctuation(word) {
+        var punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+        var spaceRE = /\s+/g;
+        return word.replace(punctRE, '').replace(spaceRE, " ");
+    }
+
+    // Function to check if a word is a stopword
+    function isStopword(word) {
+        return stopwords.includes(word.toLowerCase());
+    }
+
+    // Iterate over each object in the qaArray
+    for (let i = 0; i < qaArray.length; i++) {
+        const { q } = qaArray[i];
+
+        // Split the question and answer into an array of words
+        const words = [...q.split(' ')];
+        // Iterate over each word in the words array
+        for (let j = 0; j < words.length; j++) {
+            let word = removePunctuation(words[j].toLowerCase());
+            if (word === '') {
+                continue;
+            }
+            dictionary.add(word);
+        }
+    }
+
+    return dictionary;
+}
+
+function transliterate(word) {
+    const substitutions = {
+        ck: "к",
+        ay: "эй",
+        a: 'а',
+        b: 'б',
+        c: 'к',
+        d: 'д',
+        e: 'э',
+        f: 'ф',
+        g: 'г',
+        h: 'х',
+        i: 'и',
+        j: 'дж',
+        k: 'к',
+        l: 'л',
+        m: 'м',
+        n: 'н',
+        o: 'о',
+        p: 'п',
+        q: 'к',
+        r: 'р',
+        s: 'с',
+        t: 'т',
+        u: 'у',
+        v: 'в',
+        w: 'в',
+        x: 'кс',
+        y: 'й',
+        z: 'з',
+        ch: 'ч',
+        sh: 'ш',
+        sch: 'щ',
+        ya: 'я',
+        ye: 'е',
+        yo: 'ё',
+        yu: 'ю',
+        zh: 'ж',
+        // Add more substitution rules as needed
+    };
+
+    for (let [key, value] of Object.entries(substitutions)) {
+        word = word.replace(new RegExp(key, 'g'), value);
+    }
+
+    return word;
+}
 
 let mixer;
 const clock = new THREE.Clock();
@@ -281,7 +371,7 @@ const speechRecognitionList = new SpeechGrammarList();
 const running = '0';
 let speaking = false;
 
-const grammar = "#JSGF V1.0; grammar cash2u; public <cash2u> = кэштую | пэй24 | оной | квикпэй  | куикпэй | мегапэй | мегапей | эльсом | элсом | кейджи ;";
+const grammar = "#JSGF V1.0; grammar cash2u; public <cash2u> = кэш тую | пэй24 | оной | квикпэй | куикпэй | мегапэй | мегапей | эльсом | элсом | кейджи ;";
 speechRecognitionList.addFromString(grammar, 1);
 recognition.grammars = speechRecognitionList;
 //recognition.continuous = false;
@@ -302,12 +392,15 @@ recognition.onaudiostart = function () {
     animationOutline[0].style.animationIterationCount = 'infinite';
 };
 
+console.log(dictionary);
 
 recognition.onresult = function (event) {
     const last = event.results.length - 1;
     console.log(event.results[last][0].transcript);
-    let text = removeStopwords(event.results[last][0].transcript);
-    document.getElementById("caption").innerHTML = substituteWords(text, dictionary);
+    let text = event.results[last][0].transcript;
+    document.getElementById("caption").innerHTML = text;
+    text = removeStopwords(text.toLowerCase());
+    console.log(substituteWords(text, dictionary));
     let audio_answer_id = get_answer(text);
     if (audio_answer_id === undefined) audio_answer_id = get_answer(substituteWords(text, dictionary));
     if (audio_answer_id !== undefined) {
