@@ -84,7 +84,7 @@ function substituteWords(sentence, dictionary) {
     const modifiedWords = [];
 
     for (let word of words) {
-        let minDistance = Infinity;
+        let minDistance = 5;
         let substitute = word;
 
         for (let dictWord of dictionary) {
@@ -99,7 +99,6 @@ function substituteWords(sentence, dictionary) {
     }
 
     const modifiedSentence = modifiedWords.join(" ");
-    console.log(modifiedSentence);
     return modifiedSentence;
 }
 
@@ -124,13 +123,6 @@ const sentences = [
     "элсон",
     "мегапей"
 ];
-
-for (let sentence of sentences) {
-    const modifiedSentence = substituteWords(sentence, dictionary);
-    console.log(`Original: ${sentence}`);
-    console.log(`Modified: ${modifiedSentence}`);
-    console.log();
-}
 
 let mixer;
 const clock = new THREE.Clock();
@@ -287,6 +279,7 @@ const animationOutline = document.getElementsByClassName("outline");
 const recognition = new SpeechRecognition();
 const speechRecognitionList = new SpeechGrammarList();
 const running = '0';
+let speaking = false;
 
 const grammar = "#JSGF V1.0; grammar cash2u; public <cash2u> = кэштую | пэй24 | оной | квикпэй  | куикпэй | мегапэй | мегапей | эльсом | элсом | кейджи ;";
 speechRecognitionList.addFromString(grammar, 1);
@@ -298,8 +291,9 @@ recognition.maxAlternatives = 1;
 // Формат “грамматики“ используемой нами - это JSpeech Grammar Format (JSGF) - по ссылке можете почитать про это больше.
 
 microphoneIcon.onclick = function () {
-    recognition.start();
-    console.log('Ready to receive a color command.');
+    if (!speaking) {
+        recognition.start();
+    }
 };
 
 recognition.onaudiostart = function () {
@@ -311,16 +305,23 @@ recognition.onaudiostart = function () {
 
 recognition.onresult = function (event) {
     const last = event.results.length - 1;
-    document.getElementById("caption").innerHTML = event.results[last][0].transcript;
     console.log(event.results[last][0].transcript);
-    let audio_answer_id = get_answer(event.results[last][0].transcript, dictionary);
-    if (audio_answer_id === undefined) audio_answer_id = get_answer(substituteWords(event.results[last][0].transcript, dictionary));
+    let text = removeStopwords(event.results[last][0].transcript);
+    document.getElementById("caption").innerHTML = substituteWords(text, dictionary);
+    let audio_answer_id = get_answer(text);
+    if (audio_answer_id === undefined) audio_answer_id = get_answer(substituteWords(text, dictionary));
     if (audio_answer_id !== undefined) {
         const audio = new Audio("./public/voice/" + audio_answer_id + ".wav");
-        audio.play();
+        audio.play().then();
+        audio.playbackRate = 1.3;
+        speaking = true;
         actions["Speaking"].setEffectiveWeight(1);
-        audio.onended=function(){actions["Speaking"].setEffectiveWeight(0);};
+        audio.onended=function(){actions["Speaking"].setEffectiveWeight(0); speaking=false; recognition.start();};
+    } else {
+        // console.log(recognition);
+        setTimeout(() => {recognition.start()}, 1000);
     }
+
 };
 
 recognition.onspeechend = function () {
