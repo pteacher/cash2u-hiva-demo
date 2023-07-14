@@ -310,7 +310,6 @@ function initAnimations(gltf) {
         else if (animation.name == "Head_Node") {
             action.setEffectiveWeight(0.2);
             action.setEffectiveTimeScale(1);
-            action.play();
         }
         else {
             action.setEffectiveWeight(0);
