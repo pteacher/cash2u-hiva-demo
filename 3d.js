@@ -303,12 +303,12 @@ function initAnimations(gltf) {
         const action = mixer.clipAction(animation);
         actions[animation.name] = action;
         if (animation.name == "NlaTrack.003") {
-            action.setEffectiveWeight(0.9);
+            action.setEffectiveWeight(0.2);
             action.setEffectiveTimeScale(1);
             action.play();
         }
         else if (animation.name == "Head_Node") {
-            action.setEffectiveWeight(0.9);
+            action.setEffectiveWeight(0.2);
             action.setEffectiveTimeScale(1);
             action.play();
         }
