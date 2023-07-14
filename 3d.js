@@ -304,9 +304,13 @@ function initAnimations(gltf) {
         actions[animation.name] = action;
         if (animation.name == "NlaTrack.003") {
             action.setEffectiveWeight(0.9);
+            action.setEffectiveTimeScale(1);
+            action.play();
         }
         else if (animation.name == "Head_Node") {
-            action.setEffectiveWeight(0.5);
+            action.setEffectiveWeight(0.9);
+            action.setEffectiveTimeScale(1);
+            action.play();
         }
         else {
             action.setEffectiveWeight(0);
