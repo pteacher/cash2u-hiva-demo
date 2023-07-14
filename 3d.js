@@ -302,7 +302,7 @@ function initAnimations(gltf) {
     gltf.animations.forEach(animation => {
         const action = mixer.clipAction(animation);
         actions[animation.name] = action;
-        if (animation.name == "Greeting") {
+        if (animation.name == "NlaTrack.003") {
             action.setEffectiveWeight(0.2);
         }
         else {
